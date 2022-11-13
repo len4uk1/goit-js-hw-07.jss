@@ -1,70 +1,51 @@
-import { galleryItems } from "./gallery-items.js";
+import { galleryItems } from './gallery-items.js';
 // Change code below this line
-const galleryContainerEl = document.querySelector(".gallery");
-const backdropImg = basicLightbox.create(`<img >`);
 
-galleryContainerEl.innerHTML = createGalleryMarkup(galleryItems);
+console.log(galleryItems);
 
-addLazyloadToImg();
+const galleryContainer = document.querySelector('.gallery');
+const imagesMarkup = creatImagesMarkup(galleryItems);
+galleryContainer.insertAdjacentHTML('beforeend', imagesMarkup);
 
-galleryContainerEl.addEventListener("click", onGalleryImageClick);
+galleryContainer.addEventListener('click', onImagesContainerClick);
 
-function createGalleryMarkup(galleryItems) {
-  return galleryItems
-    .map(({ preview, original, description }) => {
-      return `<div class="gallery__item">
-  <a class="gallery__link" href='${original}'>
-    <img
-      class="gallery__image"
-      src='${preview}'
-      data-source='${original}'
-      alt='${description}'
-    />
-  </a>
-</div>`;
-    })
-    .join("");
+
+
+function creatImagesMarkup (galleryItems) {
+    const markup = galleryItems.map(({preview, original, description}) => {
+        return `
+        <div class="gallery__item">
+        <a class="gallery__link" href="${original}">
+        <img
+        class="gallery__image"
+        src="${preview}"
+        data-source="${original}"
+         alt="${description}"
+        />
+        </a>
+        </div>
+        `;
+    }).join('');
+    return markup;
 }
 
-function onGalleryImageClick(event) {
-  if (event.target.nodeName !== "IMG") {
-    return;
-  }
-  event.preventDefault();
+function onImagesContainerClick (event) {
+    event.preventDefault();
+    if (!event.target.classList.contains('gallery__image')) {
+        return;
+    }
+    const selectedImage = event.target.dataset.source;
+    
+    const instance = basicLightbox.create(`
+    <img src="${selectedImage}" width="800" height="600">
+`)
 
-  const originalImgUrl = event.target.dataset.source;
-  backdropImg.element().querySelector("img").src = originalImgUrl;
-  backdropImg.show();
+instance.show()
 
-  document.addEventListener("keydown", onEscKeyDownBackdropClose);
-}
-
-function onEscKeyDownBackdropClose(event) {
-  if (!(backdropImg.visible() && event.key === "Escape")) {
-    return;
-  }
-  backdropImg.close();
-  document.removeEventListener("keydown", onEscKeyDownBackdropClose);
-}
-
-function addLazyloadToImg() {
-  const lazyImages = document.querySelectorAll(".gallery__image");
-  if ("loading" in HTMLImageElement.prototype) {
-    lazyImages.forEach((imgEl) => {
-      imgEl.loading = "lazy";
-    });
-    const lazyScript = document.createElement("script");
-
-  } else {
-    console.log('!!!!!!!!!!!!');
-    const lazyScript = document.createElement("script");
-
-    lazyScript.src =
-      "https://cdnjs.cloudflare.com/ajax/libs/lazysizes/5.3.2/lazysizes.min.js";
-    lazyScript.integrity =
-      "sha512-q583ppKrCRc7N5O0n2nzUiJ+suUv7Et1JGels4bXOaMFQcamPk9HjdUknZuuFjBNs7tsMuadge5k9RzdmO+1GQ==";
-    lazyScript.crossorigin = "anonymous";
-    lazyScript.referrerpolicy = "no-referrer";
-    document.body.appendChild(lazyScript);
-  }
+galleryContainer.addEventListener ('keydown', event => {
+    if (event.key === 'Escape') {
+        instance.close();
+    }
+})
+  
 }
